@@ -3,7 +3,8 @@ from .models import producto
 from .serealizers import productoSerializer
 # Importar pandas
 import pandas as pd
-
+# Importar matplotlib
+import matplotlib.pyplot as plt
 
 class productoList(generics.ListCreateAPIView):
     queryset = producto.objects.all()
@@ -14,7 +15,7 @@ class productoDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = productoSerializer
 
 
-# Ejemplo de datos de producción
+# datos de producción
 data = {
     'Fecha': ['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'],
     'Fruta_Procesada_kg': [1200, 1500, 900, 1800, 1300],
@@ -37,3 +38,27 @@ df['Rendimiento'] = df['Pulpa_Obtenida_kg'] / df['Fruta_Procesada_kg'] * 100
 
 # Productividad (pulpa/hora)
 df['Productividad'] = df['Pulpa_Obtenida_kg'] / df['Horas_Operacion']
+
+# Estadísticas por operador
+estadisticas_operador = df.groupby('Operador').agg({
+    'Fruta_Procesada_kg': ['sum', 'mean', 'max'],
+    'Rendimiento': 'mean',
+    'Productividad': 'mean'
+})
+print("\nEstadísticas por operador:")
+print(estadisticas_operador)
+
+# Producción por día de la semana
+df['Dia_Semana'] = df['Fecha'].dt.day_name()
+produccion_diaria = df.groupby('Dia_Semana')['Pulpa_Obtenida_kg'].mean()
+print("\nProducción promedio por día de la semana:")
+print(produccion_diaria)
+
+# Gráfico de producción diaria
+df.plot(x='Fecha', y='Pulpa_Obtenida_kg', kind='bar', title='Producción diaria de pulpa')
+plt.ylabel('Kg de pulpa')
+plt.show()
+
+# Gráfico de rendimiento por operador
+df.groupby('Operador')['Rendimiento'].mean().plot(kind='pie', autopct='%1.1f%%', title='Rendimiento promedio por operador')
+plt.show()
